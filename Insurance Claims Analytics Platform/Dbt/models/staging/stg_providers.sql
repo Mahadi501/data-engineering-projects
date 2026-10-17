@@ -1,0 +1,18 @@
+with stg_providers as 
+(
+select
+PROVIDER_ID,
+PROVIDER_NAME,
+upper(PROVIDER_TYPE) as PROVIDER_TYPE,
+upper(SPECIALITY) as SPECIALITY,
+upper(REGION) as REGION,
+upper(PROVIDER_STATUS) as PROVIDER_STATUS,
+SOURCE_FILE_NAME,
+LOADED_AT_TIMESTAMP,
+RECORD_LOADED_TIMESTAMP,
+BATCH_ID,
+SOURCE_SYSTEM
+from {{ source('bronze', 'PROVIDERS') }}
+)
+select * from stg_providers
+

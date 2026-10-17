@@ -1,0 +1,76 @@
+models:
+  - name: silver_claims
+    description: '{{ doc("docs_silver_claims") }}'
+    columns:
+      - name: claim_id
+        data_tests:
+          - not_null
+          - unique
+  - name: silver_payments
+    description: '{{ doc("docs_silver_payments") }}'
+    columns:
+      - name: payment_id
+        data_tests:
+         - not_null
+         - unique
+      - name: claim_id
+        data_tests:
+         - relationships:
+            arguments: 
+             to: ref('stg_claims')
+             field: claim_id
+  - name: silver_employers
+    columns:
+      - name: employer_id
+        data_tests:
+          - not_null
+          - unique
+      - name: EMPLOYER_SIZE
+        data_tests:
+          - accepted_values: 
+             arguments: 
+              values: ['LARGE','MEDIUM','SMALL']  
+      - name: region
+        data_tests:
+          - accepted_values:
+             arguments:
+              values: ['REGIONAL','METRO']          
+  - name: silver_workers
+    columns:
+      - name: worker_id
+        data_tests:
+         - not_null
+         - unique
+      - name: gender
+        data_tests:
+        - accepted_values:
+           arguments: 
+            values: ['FEMALE','MALE']
+      - name: employement_type
+        data_tests:
+          - accepted_values:
+             arguments: 
+              values: ['FULL TIME','PART TIME','CASUAL']  
+  - name: silver_rtw_events
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+          - unique
+      - name: claim_id
+        data_tests:
+          - not_null
+
+  - name: silver_providers
+    columns:
+      - name: provider_id
+        data_tests:
+          - not_null
+          - unique
+      - name: provider_status
+        data_tests:
+          - accepted_values:
+             arguments: 
+              values: ['ACTIVE','INACTIVE']    
+          
+        

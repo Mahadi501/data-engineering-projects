@@ -1,0 +1,7 @@
+snapshots:
+  - name: employer_snapshot 
+    columns:
+      - name: employer_id
+        data_tests:
+          - not_null
+          

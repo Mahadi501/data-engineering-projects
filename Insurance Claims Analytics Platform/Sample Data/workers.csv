@@ -1,0 +1,101 @@
+worker_id,gender,age_group,occupation,postcode,employment_type,hire_date
+W001,Female,26-35,Analyst,3730,Part Time,2023-01-01
+W002,Female,36-45,Technician,3921,Casual,2023-01-01
+W003,Female,18-25,Analyst,3230,Full Time,2023-01-01
+W004,Female,18-25,Analyst,3602,Full Time,2023-01-01
+W005,Male,18-25,Operator,3234,Full Time,2023-01-01
+W006,Male,36-45,Operator,3526,Full Time,2023-01-01
+W007,Female,46-55,Analyst,3552,Full Time,2023-01-01
+W008,Female,26-35,Technician,3826,Part Time,2023-01-01
+W009,Male,18-25,Operator,3674,Part Time,2023-01-01
+W010,Female,46-55,Technician,3478,Casual,2023-01-01
+W011,Male,18-25,Operator,3412,Casual,2023-01-01
+W012,Female,18-25,Analyst,3196,Full Time,2023-01-01
+W013,Female,26-35,Technician,3187,Part Time,2023-01-01
+W014,Female,26-35,Operator,3453,Casual,2023-01-01
+W015,Male,18-25,Operator,3992,Full Time,2023-01-01
+W016,Male,26-35,Technician,3497,Part Time,2023-01-01
+W017,Male,46-55,Operator,3168,Part Time,2023-01-01
+W018,Male,46-55,Manager,3948,Part Time,2023-01-01
+W019,Female,46-55,Technician,3158,Full Time,2023-01-01
+W020,Female,26-35,Operator,3593,Casual,2023-01-01
+W021,Male,36-45,Operator,3051,Casual,2023-01-01
+W022,Female,56+,Analyst,3058,Casual,2023-01-01
+W023,Male,26-35,Operator,3609,Full Time,2023-01-01
+W024,Male,46-55,Operator,3964,Casual,2023-01-01
+W025,Male,56+,Operator,3634,Full Time,2023-01-01
+W026,Female,56+,Manager,3957,Part Time,2023-01-01
+W027,Male,36-45,Analyst,3271,Part Time,2023-01-01
+W028,Male,36-45,Technician,3323,Full Time,2023-01-01
+W029,Male,46-55,Operator,3075,Casual,2023-01-01
+W030,Male,56+,Manager,3135,Part Time,2023-01-01
+W031,Male,26-35,Manager,3291,Full Time,2023-01-01
+W032,Female,56+,Manager,3626,Casual,2023-01-01
+W033,Male,56+,Manager,3954,Casual,2023-01-01
+W034,Male,26-35,Manager,3118,Full Time,2023-01-01
+W035,Male,36-45,Manager,3619,Full Time,2023-01-01
+W036,Female,26-35,Manager,3517,Part Time,2023-01-01
+W037,Female,18-25,Operator,3649,Part Time,2023-01-01
+W038,Female,18-25,Operator,3341,Full Time,2023-01-01
+W039,Female,26-35,Technician,3564,Casual,2023-01-01
+W040,Female,56+,Operator,3114,Full Time,2023-01-01
+W041,Male,56+,Operator,3854,Part Time,2023-01-01
+W042,Male,46-55,Analyst,3042,Part Time,2023-01-01
+W043,Female,18-25,Manager,3215,Casual,2023-01-01
+W044,Male,18-25,Manager,3798,Casual,2023-01-01
+W045,Female,56+,Analyst,3947,Full Time,2023-01-01
+W046,Male,26-35,Technician,3025,Full Time,2023-01-01
+W047,Female,46-55,Analyst,3273,Full Time,2023-01-01
+W048,Male,46-55,Operator,3879,Part Time,2023-01-01
+W049,Male,26-35,Technician,3358,Part Time,2023-01-01
+W050,Male,26-35,Operator,3675,Full Time,2023-01-01
+W051,Female,36-45,Manager,3885,Full Time,2023-01-01
+W052,Female,36-45,Technician,3695,Casual,2023-01-01
+W053,Female,18-25,Operator,3898,Part Time,2023-01-01
+W054,Male,56+,Manager,3039,Full Time,2023-01-01
+W055,Female,36-45,Manager,3446,Casual,2023-01-01
+W056,Male,46-55,Analyst,3260,Full Time,2023-01-01
+W057,Female,18-25,Analyst,3372,Part Time,2023-01-01
+W058,Male,36-45,Manager,3679,Full Time,2023-01-01
+W059,Female,56+,Manager,3682,Part Time,2023-01-01
+W060,Female,46-55,Manager,3567,Full Time,2023-01-01
+W061,Male,46-55,Technician,3693,Casual,2023-01-01
+W062,Male,56+,Manager,3415,Casual,2023-01-01
+W063,Male,36-45,Manager,3215,Part Time,2023-01-01
+W064,Female,46-55,Technician,3452,Casual,2023-01-01
+W065,Male,56+,Technician,3812,Casual,2023-01-01
+W066,Male,18-25,Manager,3527,Casual,2023-01-01
+W067,Female,18-25,Analyst,3688,Part Time,2023-01-01
+W068,Male,26-35,Analyst,3025,Full Time,2023-01-01
+W069,Male,46-55,Operator,3466,Part Time,2023-01-01
+W070,Male,46-55,Technician,3409,Full Time,2023-01-01
+W071,Male,18-25,Operator,3797,Part Time,2023-01-01
+W072,Male,26-35,Technician,3051,Casual,2023-01-01
+W073,Male,18-25,Technician,3136,Part Time,2023-01-01
+W074,Female,46-55,Technician,3850,Casual,2023-01-01
+W075,Female,26-35,Technician,3460,Part Time,2023-01-01
+W076,Male,36-45,Technician,3641,Full Time,2023-01-01
+W077,Female,46-55,Operator,3730,Part Time,2023-01-01
+W078,Male,36-45,Manager,3327,Casual,2023-01-01
+W079,Male,26-35,Analyst,3236,Part Time,2023-01-01
+W080,Male,26-35,Operator,3424,Part Time,2023-01-01
+W081,Female,56+,Technician,3425,Full Time,2023-01-01
+W082,Male,46-55,Technician,3926,Casual,2023-01-01
+W083,Male,56+,Technician,3488,Full Time,2023-01-01
+W084,Female,36-45,Technician,3873,Part Time,2023-01-01
+W085,Male,46-55,Analyst,3279,Part Time,2023-01-01
+W086,Female,18-25,Technician,3344,Casual,2023-01-01
+W087,Female,26-35,Technician,3941,Full Time,2023-01-01
+W088,Male,46-55,Operator,3085,Casual,2023-01-01
+W089,Female,26-35,Technician,3186,Full Time,2023-01-01
+W090,Female,46-55,Manager,3216,Part Time,2023-01-01
+W091,Female,36-45,Technician,3284,Part Time,2023-01-01
+W092,Female,18-25,Technician,3019,Casual,2023-01-01
+W093,Male,36-45,Analyst,3665,Full Time,2023-01-01
+W094,Male,18-25,Analyst,3204,Full Time,2023-01-01
+W095,Male,26-35,Analyst,3484,Casual,2023-01-01
+W096,Male,56+,Analyst,3476,Casual,2023-01-01
+W097,Female,36-45,Analyst,3620,Casual,2023-01-01
+W098,Male,26-35,Manager,3110,Casual,2023-01-01
+W099,Male,36-45,Technician,3406,Casual,2023-01-01
+W100,Male,18-25,Analyst,3104,Casual,2023-01-01

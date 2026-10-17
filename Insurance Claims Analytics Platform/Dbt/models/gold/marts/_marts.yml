@@ -1,0 +1,61 @@
+models:
+  - name: claims_performance_mart
+    description: '{{ doc("docs_claims_performance_mart") }}'
+    columns:
+      - name: lodgement_month
+        data_tests:
+          - not_null
+      - name: dimension_name
+        data_tests:
+           - not_null
+           - accepted_values:
+              arguments: 
+               values: ['OVERALL','GENDER','INJURY_TYPE','CLAIM_STATUS','EMPLOYER_SIZE']
+      - name: dimension_value
+        data_tests:
+           - not_null     
+      - name: total_claims_received
+        data_tests:
+           - not_null    
+  - name: employer_risk_mart
+    columns:
+      - name: EMPLOYER_ID
+        data_tests:
+          - not_null
+      - name: dimension_name
+        data_tests:
+          - not_null
+          - accepted_values:
+             arguments: 
+              values: ['OVERALL','INDUSTRY','EMPLOYER_SIZE','INJURY_CATEGORY']
+      - name: dimension_value
+        data_tests:
+          - not_null
+  - name: provider_performance_mart
+    columns:
+      - name: provider_id
+        data_tests:
+         - not_null
+      - name: dimension
+        data_tests:
+          - not_null
+      - name: dimension_value
+        data_tests:
+          - not_null
+  - name: injury_rtw_mart
+    columns:
+      - name: afflication_nature_cd
+        data_tests:
+           - not_null
+           - unique
+      - name: claim_count
+        data_tests:
+          - not_null
+          
+          
+
+          
+
+          
+          
+

@@ -1,0 +1,20 @@
+with stg_employers as 
+(
+select 
+EMPLOYER_ID,
+ABN,
+EMPLOYER_NAME ,
+upper(INDUSTRY) as INDUSTRY,
+upper(REGION) as REGION,
+UPPER(PREMIUM_SEGMENT) as employer_size,
+EMPLOYEE_COUNT,
+EFFECTIVE_DATE,
+LAST_UPDATED_DATE,
+SOURCE_FILE_NAME,
+LOADED_AT_TIMESTAMP,
+RECORD_LOADED_TIMESTAMP,
+BATCH_ID,
+SOURCE_SYSTEM
+from {{ source('bronze', 'EMPLOYERS') }}
+)
+select * from stg_employers

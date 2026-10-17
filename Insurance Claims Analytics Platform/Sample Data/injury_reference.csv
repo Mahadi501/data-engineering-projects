@@ -1,0 +1,21 @@
+injury_code,injury_description,injury_category,body_location,severity_category
+INJ001,Injury Type 1,Musculoskeletal,Back,High
+INJ002,Injury Type 2,Fracture,Shoulder,Low
+INJ003,Injury Type 3,Psychological,Back,High
+INJ004,Injury Type 4,Musculoskeletal,Neck,Medium
+INJ005,Injury Type 5,Musculoskeletal,Back,Low
+INJ006,Injury Type 6,Psychological,Shoulder,High
+INJ007,Injury Type 7,Musculoskeletal,Neck,Low
+INJ008,Injury Type 8,Burn,Shoulder,Medium
+INJ009,Injury Type 9,Fracture,Back,Low
+INJ010,Injury Type 10,Burn,Knee,Medium
+INJ011,Injury Type 11,Psychological,Shoulder,Medium
+INJ012,Injury Type 12,Musculoskeletal,Back,Medium
+INJ013,Injury Type 13,Musculoskeletal,Knee,Medium
+INJ014,Injury Type 14,Fracture,Back,High
+INJ015,Injury Type 15,Burn,Neck,Low
+INJ016,Injury Type 16,Burn,Back,High
+INJ017,Injury Type 17,Fracture,Neck,Medium
+INJ018,Injury Type 18,Psychological,Back,Low
+INJ019,Injury Type 19,Psychological,Knee,Low
+INJ020,Injury Type 20,Psychological,Back,Medium

@@ -1,0 +1,19 @@
+with stg_workers as 
+(
+select 
+WORKER_ID,
+upper(GENDER) as GENDER,
+AGE_GROUP,
+upper(OCCUPATION) as OCCUPATION,
+POSTCODE,
+upper(EMPLOYEMENT_TYPE) as EMPLOYEMENT_TYPE,
+HIRE_DATE,
+SOURCE_FILE_NAME,
+LOADED_AT_TIMESTAMP,
+RECORD_LOADED_TIMESTAMP,
+BATCH_ID,
+SOURCE_SYSTEM
+from {{ source('bronze', 'WORKERS') }}
+)
+
+select * from stg_workers

@@ -1,0 +1,44 @@
+models:
+  - name: dim_employer
+    columns:
+      - name: employer_sk
+        data_tests:
+          - not_null
+          - unique
+      - name: employer_id
+        data_tests:
+          - not_null
+          - unique
+  - name: dim_worker
+    columns:
+      - name: worker_sk
+        data_tests:
+          - not_null
+          - unique
+      - name: worker_id
+        data_tests:
+          - unique
+          - not_null
+  - name: dim_provider
+    columns:
+      - name: provider_sk
+        data_tests:
+          - not_null
+          - unique
+      - name: provider_id
+        data_tests:
+          - not_null
+          - unique
+  - name: dim_injury
+    columns:
+      - name: afflication_nature_cd
+        data_tests:
+         - not_null
+         - unique
+      - name: afflication_nature_cd_sk
+        data_tests:
+          - unique
+          - not_null
+          
+
+          

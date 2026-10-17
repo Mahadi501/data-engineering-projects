@@ -1,0 +1,13 @@
+sources:
+  - name: bronze
+    database: INSURANCE_DEV
+    schema: bronze
+    tables:
+      - name: CLAIMS                  
+      - name: EMPLOYERS
+      - name: INJURY_REFERENCE
+      - name: PAYMENTS
+      - name: PROVIDERS
+      - name: RTW_EVENTS
+      - name: WORKERS
+      

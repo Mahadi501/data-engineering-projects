@@ -1,0 +1,51 @@
+models:
+  - name: int_claim_master
+    columns:
+      - name: claim_id 
+        data_tests:
+          - not_null
+          - relationships:
+             arguments: 
+              to: ref('stg_claims')
+              field: claim_id
+  - name: int_payment_details
+    columns:
+      - name: PAYMENT_ID
+        data_tests:
+         - not_null
+         - relationships:
+            arguments: 
+             to: ref('stg_payments')
+             field: PAYMENT_ID
+      - name: claim_id
+        data_tests:
+          - not_null
+  - name: int_rtw_journey
+    columns:
+      - name: claim_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: 
+               to: ref('stg_claims')
+               field: claim_id 
+      - name: worker_id
+        data_tests:
+          - not_null
+  - name: int_provider_activity
+    columns:
+      - name: PAYMENT_ID
+        data_tests:
+         - not_null
+      - name: CLAIM_ID
+        data_tests:
+          - not_null
+      - name: provider_id
+        data_tests:
+          - not_null
+          
+
+          
+          
+
+      

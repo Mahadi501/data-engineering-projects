@@ -1,0 +1,58 @@
+models:
+  - name: fact_claim
+    columns:
+      - name: CLAIM_ID
+        data_tests:
+        - not_null
+        - unique
+      - name: worker_sk
+        data_tests:
+        - not_null 
+        - relationships:
+            arguments: 
+             to: ref('dim_worker')
+             field: worker_sk
+      - name: AFFLICATION_NATURE_CD_sk
+        data_tests:
+        - not_null
+      - name: employer_sk
+        data_tests:
+        - not_null 
+        - relationships:
+            arguments: 
+             to: ref('dim_employer')
+             field: employer_sk     
+  - name: fact_payment
+    columns:
+      - name: payment_id 
+        data_tests:
+        - not_null
+        - unique
+      - name: provider_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: 
+               to: ref('dim_provider')
+               field: provider_sk
+      - name: AFFLICATION_NATURE_CD_sk
+        data_tests:
+          - not_null
+  - name: fact_rtw_event
+    columns:
+      - name: EVENT_ID
+        data_tests:
+          - not_null
+          - unique
+      - name: claim_id
+        data_tests:
+          - not_null
+      - name: worker_sk
+        data_tests:
+          - not_null
+      - name: afflication_nature_cd_sk
+        data_tests:
+          - not_null
+          
+         
+          

@@ -1,0 +1,135 @@
+models:
+  - name: stg_claims
+    description: '{{ doc("docs_stg_claims") }}'
+    columns:
+      - name: CLAIM_TYPE
+        data_tests:
+          - accepted_values:
+              arguments: 
+                values: ['MEDICAL','TIME LOSS']
+      - name: CLAIM_STATUS
+        data_tests:
+          - accepted_values:
+              arguments: 
+                values: ['PENDING','CLOSED','OPEN']
+      - name: CLAIM_LIABILITY_STATUS
+        data_tests:
+          - accepted_values:
+              arguments: 
+                values: ['UNDER REVIEW','ACCEPTED','PENDING']
+      - name: claim_id
+        data_tests:
+          - not_null
+      - name: claim_number
+        data_tests:
+          - not_null 
+      - name: worker_id
+        data_tests:
+          - not_null 
+      - name: employer_id
+        data_tests:
+          - not_null                            
+  - name: stg_payments
+    description: '{{ doc("docs_stg_payments") }}'
+    columns:
+      - name: payment_id
+        data_tests:
+          - not_null
+      - name: payment_type
+        data_tests:
+          - accepted_values:
+              arguments: 
+                values: ['MEDICAL','REHAB','WAGES']          
+      - name: payment_status
+        data_tests:
+          - accepted_values:
+              arguments: 
+                values: ['PROCESSED','APPROVED']              
+      - name: claim_id
+        data_tests:
+          - not_null
+          - relationships:
+             arguments: 
+              to: ref('stg_claims')
+              field: claim_id
+  - name: stg_employers
+    columns:
+      - name: EMPLOYER_SIZE
+        data_tests:
+          - accepted_values: 
+             arguments: 
+              values: ['LARGE','MEDIUM','SMALL']
+      - name: employer_id
+        data_tests:
+          - not_null
+      - name: region
+        data_tests:
+          - accepted_values:
+             arguments:
+              values: ['REGIONAL','METRO']
+  - name: stg_injury_reference
+    columns:
+      - name: afflication_nature_cd
+        data_tests:
+          - not_null
+          - accepted_values:
+             arguments: 
+              values: ['INJ001', 'INJ002', 'INJ003', 'INJ004', 'INJ005', 
+                'INJ006', 'INJ007', 'INJ008', 'INJ009', 'INJ010', 
+                'INJ011', 'INJ012', 'INJ013', 'INJ014', 'INJ015', 
+                'INJ016', 'INJ017', 'INJ018', 'INJ019', 'INJ020']
+      - name: SEVERITY_CATEGORY
+        data_tests:
+          - accepted_values:
+             arguments:
+              values: ['HIGH','MEDIUM','LOW']
+  - name: stg_providers
+    columns:
+      - name: provider_id
+        data_tests:
+         - not_null
+      - name: provider_status
+        data_tests:
+          - accepted_values:
+             arguments: 
+              values: ['ACTIVE','INACTIVE']
+  - name: stg_rtw_events
+    columns:
+      - name: event_id
+        data_tests:
+          - not_null
+      - name: claim_id
+        data_tests:
+        - not_null
+        - relationships:
+           arguments: 
+            to: ref('stg_claims')
+            field: claim_id
+      - name: provider_id
+        data_tests:
+        - not_null
+        - relationships:
+           arguments: 
+            to: ref('stg_providers')
+            field: provider_id  
+  - name: stg_workers
+    columns:
+      - name: gender
+        data_tests:
+        - accepted_values:
+           arguments: 
+            values: ['FEMALE','MALE']
+      - name: worker_id
+        data_tests:
+          - not_null
+      - name: employement_type
+        data_tests:
+          - accepted_values:
+             arguments: 
+              values: ['FULL TIME','PART TIME','CASUAL']
+
+
+
+
+
+          

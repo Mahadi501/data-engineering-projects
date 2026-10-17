@@ -1,0 +1,20 @@
+with stg_rtw_events as 
+(
+select 
+EVENT_ID,
+CLAIM_ID,
+WORKER_ID,
+EVENT_DATE,
+upper(EVENT_TYPE) as EVENT_TYPE,
+DAYS_LOST,
+PROVIDER_ID,
+CREATED_TIMESTAMP,
+SOURCE_FILE_NAME,
+LOADED_AT_TIMESTAMP,
+RECORD_LOADED_TIMESTAMP,
+BATCH_ID VARCHAR,
+SOURCE_SYSTEM STRING
+from {{ source('bronze', 'RTW_EVENTS') }}
+)
+
+select * from stg_rtw_events

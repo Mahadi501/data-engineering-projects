@@ -1,0 +1,26 @@
+provider_id,provider_name,provider_type,speciality,region,provider_status
+P001,Provider 1,Hospital,Surgery,Metro,Active
+P002,Provider 2,Hospital,Surgery,Regional,Inactive
+P003,Provider 3,Physio,Surgery,Regional,Active
+P004,Provider 4,Psychologist,Mental Health,Metro,Inactive
+P005,Provider 5,Hospital,Surgery,Regional,Active
+P006,Provider 6,Psychologist,Physical,Regional,Inactive
+P007,Provider 7,Psychologist,Mental Health,Regional,Inactive
+P008,Provider 8,GP,Physical,Regional,Inactive
+P009,Provider 9,GP,Mental Health,Regional,Inactive
+P010,Provider 10,Physio,Mental Health,Regional,Active
+P011,Provider 11,Psychologist,Physical,Regional,Inactive
+P012,Provider 12,Hospital,Mental Health,Regional,Active
+P013,Provider 13,GP,Physical,Metro,Inactive
+P014,Provider 14,Psychologist,Surgery,Metro,Inactive
+P015,Provider 15,Psychologist,Mental Health,Metro,Active
+P016,Provider 16,Hospital,Physical,Regional,Active
+P017,Provider 17,Hospital,Surgery,Regional,Inactive
+P018,Provider 18,Hospital,Mental Health,Regional,Inactive
+P019,Provider 19,Psychologist,Mental Health,Regional,Inactive
+P020,Provider 20,GP,Physical,Metro,Inactive
+P021,Provider 21,Physio,Surgery,Metro,Active
+P022,Provider 22,GP,Surgery,Regional,Inactive
+P023,Provider 23,Hospital,Physical,Metro,Inactive
+P024,Provider 24,GP,Mental Health,Metro,Inactive
+P025,Provider 25,Physio,Surgery,Metro,Inactive
