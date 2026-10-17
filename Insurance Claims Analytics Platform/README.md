@@ -39,7 +39,7 @@ The platform was designed to support analysis of:
 - dbt Snapshots
 
 ## Architecture Diagram 
-![Project Architecture](assets/architecture_diagram.png)
+![Project Architecture](Dbt/assets/architecture_diagram.png)
 
 ## Environment Architecture
 ![Environment Architecture](assets/databases.png)
