@@ -39,12 +39,14 @@ The platform was designed to support analysis of:
 - dbt Snapshots
 
 ## Architecture Diagram 
-![architecture_diagram](https://github.com/user-attachments/assets/46ad2072-cc66-4979-bd61-4e0e16594e36)
+<img width="1574" height="704" alt="architecture_diagram" src="https://github.com/user-attachments/assets/928feb89-d91b-4c4b-be7a-9cdc6f9dfe9f" />
+
 
 
 ## Environment Architecture
-![databases](https://github.com/user-attachments/assets/8280bd86-278f-4396-ac24-b2371778c6f0)
-![schemas](https://github.com/user-attachments/assets/8c639abd-1e48-4eb1-87ae-e89665d01aba)
+<img width="1138" height="388" alt="schemas" src="https://github.com/user-attachments/assets/1cf51d29-b5e8-4b43-ad36-a932f0c4a6da" />
+<img width="1832" height="204" alt="databases" src="https://github.com/user-attachments/assets/e79dc844-7df1-4512-a2e0-8331d0e77d03" />
+
 
 ## Environment Architecture
 
@@ -138,7 +140,8 @@ Feature Branch
 → PROD Deployment
 
 DEV → TEST → PROD deployment validation
-![Environment Schemas](assets/deploy_to_prod_validation.png)
+<img width="1850" height="332" alt="deploy_to_prod_validation" src="https://github.com/user-attachments/assets/eda6b151-248d-422a-ae64-1e046158dda0" />
+
 
 ## Rollback Strategy
 
