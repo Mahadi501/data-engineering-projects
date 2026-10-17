@@ -39,11 +39,13 @@ The platform was designed to support analysis of:
 - dbt Snapshots
 
 ## Architecture Diagram 
-![Project Architecture](assets/architecture_diagram.png)
+![architecture_diagram](https://github.com/user-attachments/assets/46ad2072-cc66-4979-bd61-4e0e16594e36)
+
 
 ## Environment Architecture
-![Environment Architecture](assets/databases.png)
-![Environment Schemas](assets/schemas.png)
+![databases](https://github.com/user-attachments/assets/8280bd86-278f-4396-ac24-b2371778c6f0)
+![schemas](https://github.com/user-attachments/assets/8c639abd-1e48-4eb1-87ae-e89665d01aba)
+
 ## Environment Architecture
 
 - INSURANCE_DEV
