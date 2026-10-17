@@ -105,10 +105,28 @@ Gold: 4 data marts, 2 fact obects and 4 dimension models
 - fact_rtw_event
 
 ### Marts
-- claims_performance_mart
+- claims_performance_mart:
+  1) How many claims per month?
+  2) Claims by gender?
+  3) Claims by employer type?
+  4) Claims by status?
+  5) Claims by Employer Size?
+  6) What type of claims cost the most?
+  7) AVG/MAX Delay between injury date to claim lodgement date
+     
 - employer_risk_mart
+  1) Claims by Employer
+  2) Injury Distribution across employers
+  and much more...
+   
 - provider_performance_mart
+  1) Active vs inactive providers
+  2) Provider specialities
+  3) Which type of providers have received the most amount of money?
+  4) Provider Claim Volume
+     
 - rtw_performance_mart
+  1) AVG/MAX/MIN RTW duration segmented by various cohorts such as injury_type, employer_size and claim_type
 
 ## Incremental Strategy
 
@@ -147,6 +165,7 @@ Feature Branch
 → TEST Deployment
 → UAT Validation
 → PROD Deployment
+![Environment Schemas](assets/deploy_to_prod_validation.png)
 
 ## Rollback Strategy
 
