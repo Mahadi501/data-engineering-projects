@@ -39,11 +39,11 @@ The platform was designed to support analysis of:
 - dbt Snapshots
 
 ## Architecture Diagram 
-![Project Architecture](Dbt/assets/architecture_diagram.png)
+<img width="1574" height="704" alt="architecture_diagram" src="https://github.com/user-attachments/assets/ba14eaa3-c26d-4ab5-a73e-1075b8998d1e" />
 
 ## Environment Architecture
-![Environment Architecture](assets/databases.png)
-![Environment Schemas](assets/schemas.png)
+<img width="1832" height="204" alt="databases" src="https://github.com/user-attachments/assets/142b46de-ea21-45fe-996d-969a696e28c8" />
+<img width="1138" height="388" alt="schemas" src="https://github.com/user-attachments/assets/1526211e-71b6-4261-9445-767b7d2420ab" />
 ## Environment Architecture
 
 - INSURANCE_DEV
@@ -105,10 +105,28 @@ Gold: 4 data marts, 2 fact obects and 4 dimension models
 - fact_rtw_event
 
 ### Marts
-- claims_performance_mart
+- claims_performance_mart:
+  1) How many claims per month?
+  2) Claims by gender?
+  3) Claims by employer type?
+  4) Claims by status?
+  5) Claims by Employer Size?
+  6) What type of claims cost the most?
+  7) AVG/MAX Delay between injury date to claim lodgement date
+     
 - employer_risk_mart
+  1) Claims by Employer
+  2) Injury Distribution across employers
+  and much more...
+   
 - provider_performance_mart
+  1) Active vs inactive providers
+  2) Provider specialities
+  3) Which type of providers have received the most amount of money?
+  4) Provider Claim Volume
+     
 - rtw_performance_mart
+  1) AVG/MAX/MIN RTW duration segmented by various cohorts such as injury_type, employer_size and claim_type
 
 ## Incremental Strategy
 
@@ -147,7 +165,7 @@ Feature Branch
 → TEST Deployment
 → UAT Validation
 → PROD Deployment
-
+<img width="1850" height="332" alt="deploy_to_prod_validation" src="https://github.com/user-attachments/assets/b41248da-054d-4e86-824e-446e911a594d" />
 ## Rollback Strategy
 
 - Git commit rollback for code defects.

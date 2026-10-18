@@ -39,11 +39,15 @@ The platform was designed to support analysis of:
 - dbt Snapshots
 
 ## Architecture Diagram 
-![Project Architecture](assets/architecture_diagram.png)
+<img width="1574" height="704" alt="architecture_diagram" src="https://github.com/user-attachments/assets/928feb89-d91b-4c4b-be7a-9cdc6f9dfe9f" />
+
+
 
 ## Environment Architecture
-![Environment Architecture](assets/databases.png)
-![Environment Schemas](assets/schemas.png)
+<img width="1138" height="388" alt="schemas" src="https://github.com/user-attachments/assets/1cf51d29-b5e8-4b43-ad36-a932f0c4a6da" />
+<img width="1832" height="204" alt="databases" src="https://github.com/user-attachments/assets/e79dc844-7df1-4512-a2e0-8331d0e77d03" />
+
+
 ## Environment Architecture
 
 - INSURANCE_DEV
@@ -136,7 +140,8 @@ Feature Branch
 → PROD Deployment
 
 DEV → TEST → PROD deployment validation
-![Environment Schemas](assets/deploy_to_prod_validation.png)
+<img width="1850" height="332" alt="deploy_to_prod_validation" src="https://github.com/user-attachments/assets/eda6b151-248d-422a-ae64-1e046158dda0" />
+
 
 ## Rollback Strategy
 
