@@ -54,6 +54,7 @@ FILE_FORMAT = (format_name = 'INSURANCE_DEV.DBT_MTEST.CSV_LOADER');
 --select * from insurance_dev.dbt_mtest.employer_tradional_loading limit 10;
 
 
+
 --loading a file with a different file structure to see what type of error it generates
 COPY INTO insurance_dev.dbt_mtest.employer_tradional_loading 
 (
