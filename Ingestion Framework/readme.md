@@ -170,3 +170,24 @@ Once the data comes into a variant object, the downstream table can then load it
 ### Experiment: Impact of Schema Changes
 1. Change the order of existing columns: The data was loaded into the variant column. No error raised however, the downstream table failed as it expected date column at position 2. 
 2. Test ingestion with a file containing only one column, It progressed, all the other columns were marked as null
+
+
+## 4. Production Grade - Metadata driven Data Ingestion
+How it works:
+New File Arrives -> Read File Header -> Read Schema Registry -> Compare file header with schema registry -> Determine Change Type -> Take Action 
+Here schema registry refers to a hardcoded table which would consist of something like: 
+Source   | Position | Column Name
+Employer |   1      | Employer_id 
+Employer |   2      | ABN
+Employer |   3      | State
+
+Reading file header means, see what columns are coming inside the file header and then compare that with the schema registry table. 
+
+Example of actions:
+1) Column Reordering - schema registry has employer_id | Employer_Name | State while incoming file has State |  employer_id | Employer_Name
+Comparison result will be column match and order changed. Action is Load file and lod informational message
+2) New Column added - schema registry has employer_id | Employer_Name | State while incoming file has employer_id | Employer_Name | State | Phone then options could be allow and log
+and handle schema evolution.
+3) Renamed column - Employer_name in schema register and employer_full_name inside file header, action would be flag for review do not ingest
+
+The ingestion rules can be added into the schema_evolution.md file
