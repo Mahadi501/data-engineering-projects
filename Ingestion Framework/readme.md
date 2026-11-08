@@ -128,3 +128,45 @@ Advantages
 2. I tried thinking of adding a new column and kept all existing columns thinking that the new columns will not be ingested as the downstream table does not a column for it and rest will be ingested. But it gives out error that the column number have changed.
 
 Code: match_by_cols_name.sql
+
+## 3. Variant based Data Ingestion
+
+How it works:
+Using the object_construct pass in a key value pair for the incoming file. For example, if the file has three columns: 
+name,
+place,
+animal
+then 
+object_construct(
+'name',$1,
+'place',$2,
+'thing',$3
+)
+If there is a chance that the incoming file may contain extra 1-2 column after thing then you can handle this by using: 
+object_construct_keep_null(
+'name',$1,
+'place',$2,
+'thing',$3
+'extra_column1',$4,
+'extra_column2',$5,
+)
+If the incoming file only has 3 columns then extra_column1 and extra_column2 will become null. 
+Once the data comes into a variant object, the downstream table can then load it up and rename column as needed.
+
+### Advantages
+- **Schema flexibility:** The raw ingestion layer can accommodate optional fields and variations in incoming file structures, provided the expected positional mappings are handled.
+- **Metadata capture:** Additional metadata columns can be captured during ingestion, such as file name, load timestamp, batch ID and file row number.
+- **Separation of ingestion and transformation:** Raw data can be retained in a VARIANT column, allowing downstream models to handle business-specific transformations independently.
+- **Reduced coupling:** Changes to downstream business logic do not necessarily require changes to the raw ingestion table.
+
+### Disadvantages
+
+- **Increased complexity:** The implementation is more complicated than conventional column-based ingestion.
+- **Downstream schema dependency:** Successful raw ingestion does not guarantee successful downstream processing. For example, if a downstream model expects `employee_id` to exist but the incoming file does not contain it at the expected position, the downstream transformation may fail or produce incorrect results.
+- **Positional dependency:** When using `$1`, `$2`, `$3`, etc., changes to the order of incoming CSV columns can result in incorrect attribute mappings.
+- **Explicit mapping maintenance:** New columns must be accounted for in the object construction logic if they need to be retained.
+
+
+### Experiment: Impact of Schema Changes
+1. Change the order of existing columns: The data was loaded into the variant column. No error raised however, the downstream table failed as it expected date column at position 2. 
+2. Test ingestion with a file containing only one column, It progressed, all the other columns were marked as null
