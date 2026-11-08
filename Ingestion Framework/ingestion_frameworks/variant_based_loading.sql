@@ -45,3 +45,10 @@ FILE_FORMAT = (format_name = 'INSURANCE_DEV.DBT_MTEST.CSV_LOADER');
 
 
 select * from insurance_dev.DBT_MTEST.raw_employer_payload limit 5;
+
+-- unpacking the variant column
+select 
+raw_payload:col1::varchar as employer_id,
+raw_payload:col2::varchar as ABN
+from insurance_dev.DBT_MTEST.raw_employer_payload
+limit 5;
