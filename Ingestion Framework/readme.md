@@ -55,7 +55,7 @@ The preferred production approach is to use a Snowflake Storage Integration with
 
 # Comparing File Ingestion Approaches
 
-1. Positional-Based Data Ingestion
+## 1. Positional-Based Data Ingestion
 
 How it works
 
@@ -81,7 +81,7 @@ Disadvantages
 
 - Can introduce silent data quality issues when Snowflake performs implicit data type conversions.
 
-# Experiment: Impact of Schema Changes
+### Experiment: Impact of Schema Changes
 
 During testing, I introduced a new column, OFFICES_COUNT, at position 8 in the source CSV file.
 
@@ -100,5 +100,31 @@ This highlighted an important limitation: a successful COPY operation does not n
 
 The experiment demonstrated that positional-based ingestion is vulnerable to schema drift, particularly when columns are added, removed or reordered.
 
-# Code
-- traditional_copy_into.sql
+Code: traditional_copy_into.sql
+
+
+## 2. Match by column name Data Ingestion
+How it works:
+In this type of ingestion, we do not have to hardcoding the position of the columns to column names. It works by infering what positions  are the incoming columns coming in the file and then automatically assign them to the underlying table columns.
+
+Advantages
+
+- Simple to implement.
+
+- Requires minimal configuration.
+
+- Suitable when source file structures column names remain same and only their positioning may change. Also the total column count remains the same.
+
+- Does not silently ingest columns like positional based ingestion. 
+
+
+ Disadvantage: 
+ - You cannot create additional metadata column when you ingest using match by column names. If the incoming file does not have the metadata columns then you cant yourself create it.
+ - The file format has to have the parse_header enabled otherwise ingestion through match by column is not possibl.
+- If the total number of column changes, even though previous column still exists, it will still give an error.
+
+### Experiment: Impact of Schema Changes
+1. I tried loadind a file with columns moved around but with the same number of columns, the ingestion went through and was incorrect.
+2. I tried thinking of adding a new column and kept all existing columns thinking that the new columns will not be ingested as the downstream table does not a column for it and rest will be ingested. But it gives out error that the column number have changed.
+
+Code: match_by_cols_name.sql
