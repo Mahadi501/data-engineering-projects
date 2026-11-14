@@ -1,22 +1,21 @@
 -- create a store procedure that takes a file as input and determines if it matches the schema registry table
 CREATE OR REPLACE PROCEDURE insurance_dev.dbt_mtest.schema_validator(FILE_PATH VARCHAR,FILE_FORMAT_NAME VARCHAR)
-returns VARCHAR 
+returns TABLE ()
 language sql
 as 
 $$
-DECLARE
-    v_ingestion_results RESULTSET;
-    v_status VARCHAR;
+DECLARE 
+v_ingestion_results RESULTSET;
 
 BEGIN 
 
-v_ingestion_results :=
+v_ingestion_results := 
 (
     -- EXTRACTING THE FILE HEADER FROM THE FILE
     with file_header as (
         select 
             lower(COLUMN_NAME) as COLUMN_NAME,
-             REGEXP_REPLACE(lower(TYPE), '[0-9(),]', '') as TYPE,
+            trim(REGEXP_REPLACE(lower(TYPE), '[0-9(),]', '')) as TYPE,
             ORDER_ID,
             lower(FILENAMES) 
             from table(
@@ -31,7 +30,7 @@ v_ingestion_results :=
     active_schema_registry as (
         select 
         lower(COLUMN_NAME) as COLUMN_NAME,
-        trim(lower(DATA_TYPE)) as DATA_TYPE,
+        trim(REGEXP_REPLACE(lower(DATA_TYPE), '[0-9(),]', '')) as DATA_TYPE,
         COLUMN_POSITION as COLUMN_POSITION
         from INSURANCE_DEV.DBT_MTEST.SCHEMA_REGISTRY_TABLE
         where CURRENT_FLAG = TRUE
@@ -92,11 +91,13 @@ v_ingestion_results :=
                 when 
                     (result_set1.schema_column_name = result_set1.header_column_name) and
                     (result_set1.schema_col_position = result_set1.header_col_position) and 
-                    (JAROWINKLER_SIMILARITY(result_set1.schema_datatype, result_set1.header_datatype_transformed)) > 95  then 'Column Matched'
+                    (result_set1.schema_datatype = result_set1.header_datatype_transformed)  then 'Column Matched'
+                    --(JAROWINKLER_SIMILARITY(result_set1.schema_datatype, result_set1.header_datatype_transformed)) > 95  then 'Column Matched'
                 when     
                     (result_set1.schema_column_name = result_set1.header_column_name) and 
                     (result_set1.schema_col_position = result_set1.header_col_position) and 
-                    (JAROWINKLER_SIMILARITY(result_set1.schema_datatype, result_set1.header_datatype_transformed)) < 95 then 'Column Type Mismatched'
+                    (result_set1.schema_datatype != result_set1.header_datatype_transformed) then 'Column Type Mismatched'
+                    -- (JAROWINKLER_SIMILARITY(result_set1.schema_datatype, result_set1.header_datatype_transformed)) < 95 then 'Column Type Mismatched'
                 when   
                     (result_set1.schema_column_name != result_set1.header_column_name) and 
                     (result_set1.schema_col_position != result_set1.header_col_position) and 
@@ -105,7 +106,8 @@ v_ingestion_results :=
                 when 
                     (result_set1.schema_column_name = result_set1.header_column_name) and
                     (result_set1.schema_col_position != result_set1.header_col_position) and 
-                    (JAROWINKLER_SIMILARITY(result_set1.schema_datatype, result_set1.header_datatype_transformed)) > 95  then 'Column Position Mismatched'
+                    (result_set1.schema_datatype = result_set1.header_datatype_transformed) then 'Column Position Mismatched'
+                    --(JAROWINKLER_SIMILARITY(result_set1.schema_datatype, result_set1.header_datatype_transformed)) > 95  
                 else 'Column Not Found' end as mapping_status,
             case 
                 when  mapping_status not in ('Column Matched')  then 'Failed'
@@ -118,45 +120,28 @@ v_ingestion_results :=
     results_categorise as 
     (  
     select 
-        header_column_name,
-        schema_col_position
-        header_col_position,
-        schema_datatype,
-        header_datatype_transformed,
-        columns_similarity_score,
-        mapping_status,
+        SCHEMA_COLUMN_NAME,
+        HEADER_COLUMN_NAME,
+        SCHEMA_COL_POSITION,
+        HEADER_COL_POSITION,
+        SCHEMA_DATATYPE,
+        HEADER_DATATYPE_TRANSFORMED,
+        RENAMED_COLUMN,
+        COLUMNS_SIMILARITY_SCORE,
+        MAPPING_STATUS,
+        COLUMN_MAPPING_STATUS,
         case 
             when mapping_status not in ('Column Matched')  then 'Failed'
             else 'Passed'
             end as column_mapping_status
     from results_compiled     
     )
+    select * from results_categorise
 );    
 
--- reading results to set the status value
-select 
-        schema_column_name,
-        header_column_name,
-        schema_col_position,
-        header_col_position,
-        schema_datatype,
-        header_datatype_transformed,
-        renamed_column,
-        columns_similarity_score,
-        mapping_status,
-        column_mapping_status
-from table(v_ingestion_results)   
-where column_mapping_status = 'Failed';
-    
--- copying results into variable
-select 
-    case 
-        when count(*) > 0 then 'Failed'
-        else 'Passed'
-        end as result
-    into  :v_status   
-from TABLE(RESULT_SCAN(LAST_QUERY_ID()));
-        
-RETURN 'Ingested File Schema: ' || v_status;
+RETURN TABLE(v_ingestion_results);
 END;
 $$;
+
+
+call insurance_dev.dbt_mtest.schema_validator('@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v1.csv','INSURANCE_DEV.DBT_MTEST.CSV_LOADER2');
