@@ -49,12 +49,13 @@ URL='s3://bronze-employer-ingestion/bronze'
         AWS_KEY_ID = 'enter here'
         AWS_SECRET_KEY = 'enter here'
     )
-file_format = csv_loader;
+directory = (
+    enable = true
+    auto_refresh = true
+);
 
 --view files
 list @insurance_dev.DBT_MTEST.employer_stage_s3;
-
-
 
 
 
