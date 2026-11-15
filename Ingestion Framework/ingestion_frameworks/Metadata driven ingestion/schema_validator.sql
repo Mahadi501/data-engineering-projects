@@ -11,7 +11,6 @@ BEGIN
 
 v_ingestion_results := 
 (
-    -- EXTRACTING THE FILE HEADER FROM THE FILE
     with file_header as (
         select 
             lower(COLUMN_NAME) as COLUMN_NAME,
@@ -23,10 +22,11 @@ v_ingestion_results :=
                     -- '@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v4.csv',
                     location => :FILE_PATH, 
                     -- 'INSURANCE_DEV.DBT_MTEST.CSV_LOADER2'
-                    FILE_FORMAT =>  :FILE_FORMAT_NAME
+                    FILE_FORMAT => :FILE_FORMAT_NAME
                 )
             )
     ),
+    -- getting current schema information  
     active_schema_registry as (
         select 
         lower(COLUMN_NAME) as COLUMN_NAME,
@@ -35,38 +35,97 @@ v_ingestion_results :=
         from INSURANCE_DEV.DBT_MTEST.SCHEMA_REGISTRY_TABLE
         where CURRENT_FLAG = TRUE
     ),
-    comparison as (
+    -- comparing the schema information with the file header
+    comparison_from_schema_to_header as (
         SELECT 
-            schema_registry.COLUMN_NAME as schema_column_name,
+            COALESCE(schema_registry.COLUMN_NAME,'missing') as schema_column_name,
             COALESCE(header.COLUMN_NAME,'missing') as header_column_name,
-            schema_registry.DATA_TYPE as schema_datatype,
+            COALESCE(schema_registry.DATA_TYPE,'missing') as schema_datatype,
             COALESCE(header.TYPE,'missing') as header_datatype,
             schema_registry.COLUMN_POSITION as schema_col_position,
-            COALESCE(header.ORDER_ID,99999) as header_col_position
+            header.ORDER_ID as header_col_position
         from active_schema_registry as schema_registry
         left join file_header as header 
             on lower(schema_registry.COLUMN_NAME) = lower(header.COLUMN_NAME)   
     ),
-    comparison_col_renamed as (
-    select 
-        COALESCE(schema_registry.COLUMN_NAME,'missing') as schema_column_name,
-        COALESCE(header.COLUMN_NAME,'missing') as header_column_name,
-        COALESCE(JAROWINKLER_SIMILARITY(schema_registry.COLUMN_NAME,header.COLUMN_NAME),0) as similarity_match
-    from active_schema_registry as schema_registry
-    cross join file_header as header 
+    -- comparing the file header information with the schema
+    comparison_from_header_to_schema as (
+        SELECT 
+            COALESCE(schema_registry.COLUMN_NAME,'missing') as schema_column_name,
+            COALESCE(header.COLUMN_NAME,'missing') as header_column_name,
+            COALESCE(schema_registry.DATA_TYPE,'missing') as schema_datatype,
+            COALESCE(header.TYPE,'missing') as header_datatype,
+            schema_registry.COLUMN_POSITION as schema_col_position,
+            header.ORDER_ID as header_col_position
+        from file_header as header 
+        left join active_schema_registry as schema_registry
+            on lower(schema_registry.COLUMN_NAME) = lower(header.COLUMN_NAME)   
     ),
+    unmatched_schema_columns as (
+    select 
+        s.COLUMN_NAME,
+        s.DATA_TYPE,
+        s.COLUMN_POSITION
+    FROM active_schema_registry s  
+    left join file_header h
+    ON s.COLUMN_NAME = h.COLUMN_NAME
+    WHERE h.COLUMN_NAME IS NULL
+    ),
+    unmatched_header_columns as (
+    SELECT
+        h.COLUMN_NAME,
+        h.TYPE,
+        h.ORDER_ID
+    FROM file_header h
+    LEFT JOIN active_schema_registry s
+        ON h.COLUMN_NAME = s.COLUMN_NAME
+    WHERE s.COLUMN_NAME IS NULL
+    ),
+    -- cross join schema registry with file header for identifying renamed columns 
+    comparison_col_renamed AS (
+    SELECT
+        s.COLUMN_NAME AS SCHEMA_COLUMN_NAME,
+        h.COLUMN_NAME AS HEADER_COLUMN_NAME,
+
+        JAROWINKLER_SIMILARITY(
+            s.COLUMN_NAME,
+            h.COLUMN_NAME
+        ) AS SIMILARITY_MATCH
+
+    FROM unmatched_schema_columns s
+    CROSS JOIN unmatched_header_columns h
+    ),
+    -- applying transformations to enable correct comparison between data type columns inside comparison_from_schema_to_header
     results as (
         select 
         schema_column_name,
         header_column_name,
         schema_col_position,
         header_col_position,
-        schema_datatype,
+        case when 
+            (schema_datatype in ('text','string','char','character','varbinary','binary')) then 'varchar'
+            else schema_datatype end as schema_datatype,
         case 
-            when (header_datatype in ('text','string','CHAR','CHARACTER','VARBINARY','BINARY')) then 'varchar'
-            when (header_datatype in ('time','timestamp','TIMESTAMP_LTZ','TIMESTAMP_NTZ','TIMESTAMP_TZ')) then 'date' else header_datatype end as header_datatype_transformed
-        from comparison
+            when (header_datatype in ('text','string','char','character','varbinary','binary')) then 'varchar'
+            else header_datatype end as header_datatype_transformed
+        from comparison_from_schema_to_header
     ),
+    -- applying transformations to enable correct comparison between data type columns inside comparison_from_header_to_schema
+    results_2 as (
+        select 
+        schema_column_name,
+        header_column_name,
+        schema_col_position,
+        header_col_position,
+        case when 
+            (schema_datatype in ('text','string','char','character','varbinary','binary')) then 'varchar'
+            else schema_datatype end as schema_datatype,
+        case 
+            when (header_datatype in ('text','string','char','character','varbinary','binary')) then 'varchar'
+            else header_datatype end as header_datatype_transformed
+        from comparison_from_header_to_schema
+    ),
+    -- removing all rows where similarity score was calculated for matching columns such as abn inside schema with abn inside header
     results_col_renamed as (
         select  
             schema_column_name,
@@ -75,6 +134,15 @@ v_ingestion_results :=
         from  comparison_col_renamed
         where similarity_match between 90 and 99
     ),
+    results_col_renamed2 as (
+        select  
+            header_column_name,
+            schema_column_name as renamed_column,
+            similarity_match
+        from  comparison_col_renamed
+        where similarity_match between 90 and 99
+    ),
+    
     results_compiled as 
     (
         select 
@@ -84,7 +152,9 @@ v_ingestion_results :=
             result_set1.header_col_position,
             result_set1.schema_datatype,
             result_set1.header_datatype_transformed,
-            result_set2.renamed_column,
+            case 
+              when  (result_set1.schema_column_name = result_set1.header_column_name) and (result_set1.schema_col_position = result_set1.header_col_position) then null
+            else result_set2.renamed_column end as renamed_column,
             case when (result_set1.schema_column_name = result_set1.header_column_name) then 0
             else result_set2.similarity_match end as columns_similarity_score,
             case 
@@ -92,31 +162,75 @@ v_ingestion_results :=
                     (result_set1.schema_column_name = result_set1.header_column_name) and
                     (result_set1.schema_col_position = result_set1.header_col_position) and 
                     (result_set1.schema_datatype = result_set1.header_datatype_transformed)  then 'Column Matched'
-                    --(JAROWINKLER_SIMILARITY(result_set1.schema_datatype, result_set1.header_datatype_transformed)) > 95  then 'Column Matched'
                 when     
                     (result_set1.schema_column_name = result_set1.header_column_name) and 
                     (result_set1.schema_col_position = result_set1.header_col_position) and 
                     (result_set1.schema_datatype != result_set1.header_datatype_transformed) then 'Column Type Mismatched'
-                    -- (JAROWINKLER_SIMILARITY(result_set1.schema_datatype, result_set1.header_datatype_transformed)) < 95 then 'Column Type Mismatched'
                 when   
                     (result_set1.schema_column_name != result_set1.header_column_name) and 
+                    (result_set2.renamed_column IS NOT NULL) and 
+                    (result_set2.similarity_match between 90 and 99) then 'Column Renamed'
+    
+                when 
+                    (result_set1.schema_column_name = result_set1.header_column_name) and
+                    result_set1.schema_col_position is not null and
+                    result_set1.header_col_position is not null and
                     (result_set1.schema_col_position != result_set1.header_col_position) and 
+                    (result_set1.schema_datatype = result_set1.header_datatype_transformed) then 'Column Position Mismatched'
+                else 'Column Not Found' end as mapping_status 
+        from results as result_set1
+        left join results_col_renamed as result_set2 
+        on result_set1.schema_column_name = result_set2.schema_column_name
+    ),
+    result_compiled_2 as 
+    (
+         select 
+            result_set1.schema_column_name,
+            result_set1.header_column_name,
+            result_set1.schema_col_position,
+            result_set1.header_col_position,
+            result_set1.schema_datatype,
+            result_set1.header_datatype_transformed,
+            case 
+              when  (result_set1.schema_column_name = result_set1.header_column_name) and (result_set1.schema_col_position = result_set1.header_col_position) then null
+            else result_set2.renamed_column end as renamed_column,
+            case when (result_set1.schema_column_name = result_set1.header_column_name) then 0
+            else result_set2.similarity_match end as columns_similarity_score,
+            case 
+                when 
+                    (result_set1.schema_column_name = result_set1.header_column_name) and
+                    (result_set1.schema_col_position = result_set1.header_col_position) and 
+                    (result_set1.schema_datatype = result_set1.header_datatype_transformed)  then 'Column Matched'
+                when     
+                    (result_set1.schema_column_name = result_set1.header_column_name) and 
+                    (result_set1.schema_col_position = result_set1.header_col_position) and 
+                    (result_set1.schema_datatype != result_set1.header_datatype_transformed) then 'Column Type Mismatched'
+                when   
+                    (result_set1.schema_column_name != result_set1.header_column_name) and 
                     (result_set2.renamed_column IS NOT NULL) and (result_set2.similarity_match between 90 and 99) then 'Column Renamed'
     
                 when 
                     (result_set1.schema_column_name = result_set1.header_column_name) and
                     (result_set1.schema_col_position != result_set1.header_col_position) and 
+                    (result_set1.schema_col_position is null) and
+                    (result_set1.header_col_position is null) and
                     (result_set1.schema_datatype = result_set1.header_datatype_transformed) then 'Column Position Mismatched'
-                    --(JAROWINKLER_SIMILARITY(result_set1.schema_datatype, result_set1.header_datatype_transformed)) > 95  
-                else 'Column Not Found' end as mapping_status,
-            case 
-                when  mapping_status not in ('Column Matched')  then 'Failed'
-                else 'Passed'
-                end as column_mapping_status    
-        from results as result_set1
-        left join results_col_renamed as result_set2 
-        on result_set1.schema_column_name = result_set2.schema_column_name
+                else 'Column Added' end as mapping_status
+        from results_2 as result_set1
+        left join results_col_renamed2 as result_set2 
+        on result_set1.header_column_name = result_set2.header_column_name 
+        where result_set1.schema_column_name = 'missing'
     ),
+    result_combined as (
+      select 
+      *
+      from results_compiled 
+    union all 
+      select 
+      * 
+      from result_compiled_2
+    ),
+    
     results_categorise as 
     (  
     select 
@@ -126,15 +240,14 @@ v_ingestion_results :=
         HEADER_COL_POSITION,
         SCHEMA_DATATYPE,
         HEADER_DATATYPE_TRANSFORMED,
-        RENAMED_COLUMN,
+        RENAMED_COLUMN as POTENTIAL_RENAMED_COLUMN,
         COLUMNS_SIMILARITY_SCORE,
         MAPPING_STATUS,
-        COLUMN_MAPPING_STATUS,
         case 
             when mapping_status not in ('Column Matched')  then 'Failed'
             else 'Passed'
             end as column_mapping_status
-    from results_compiled     
+    from result_combined     
     )
     select * from results_categorise
 );    
@@ -144,4 +257,4 @@ END;
 $$;
 
 
-call insurance_dev.dbt_mtest.schema_validator('@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v1.csv','INSURANCE_DEV.DBT_MTEST.CSV_LOADER2');
+call insurance_dev.dbt_mtest.schema_validator('@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v5.csv','INSURANCE_DEV.DBT_MTEST.CSV_LOADER2');
