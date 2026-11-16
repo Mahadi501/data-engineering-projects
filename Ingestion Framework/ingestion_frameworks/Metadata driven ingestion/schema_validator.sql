@@ -312,7 +312,7 @@ $$;
 
 call insurance_dev.dbt_mtest.schema_validator('@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v3.csv','INSURANCE_DEV.DBT_MTEST.CSV_LOADER2','employer','batch1224');
 
-select * from insurance_dev.dbt_mtest.schema_validation_results;
+select * from insurance_dev.dbt_mtest.schema_validation_results where batch_id = 'batch1223';
 
 
 
