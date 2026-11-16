@@ -9,7 +9,7 @@ action varchar
 )
 comment = 'Rolled up version of the schema validation column level datasets and creates schema validation classification and action';
 
--- store procedure to understand schema column results and determines classification & action
+-- store procedure to determine the final ingestion action for the incoming source file
 create or replace procedure insurance_dev.dbt_mtest.schema_classifier(batch_id varchar,source varchar) 
 returns varchar
 language sql 
@@ -37,7 +37,7 @@ insert into insurance_dev.dbt_mtest.schema_validation_summary
 values(:batch_id,:source,:v_validation_time,'schema validation information not found','reject');
 return 'Error - batch_id or source not found!';
 
---extract the schema validation information and provide a final classification and action on the incoming file
+--extract the schema validation information and provide a final classification and action on the incoming source file
 else  
     insert into insurance_dev.dbt_mtest.schema_validation_summary 
     (
@@ -63,7 +63,7 @@ else
             COLUMNS_SIMILARITY_SCORE,
             MAPPING_STATUS,
             column_mapping_status,
-    
+            -- creating a severity rating for the source file to determine final action on the file
             CASE
                 WHEN MAPPING_STATUS = 'Column Matched' THEN 0
                 WHEN MAPPING_STATUS = 'Column Not Found' THEN 5
