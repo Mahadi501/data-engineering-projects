@@ -21,7 +21,6 @@ comment = 'Table to store the column level schema validation results';
 CREATE OR REPLACE PROCEDURE insurance_dev.dbt_mtest.schema_validator
 (
 FILE_PATH VARCHAR, -- refers to complete file_path of the source file
-FILE_FORMAT_NAME VARCHAR, -- refers to location of the file format to use to load the file
 source_type VARCHAR, -- refers to data entity for the incoming file such as employer, customer etc
 batch_id VARCHAR -- refers to the ingestion batch
 )
@@ -60,7 +59,7 @@ with file_header as (
                 -- '@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v4.csv',
                 location => :FILE_PATH, 
                 -- 'INSURANCE_DEV.DBT_MTEST.CSV_LOADER2'
-                FILE_FORMAT => :FILE_FORMAT_NAME
+                FILE_FORMAT => 'INSURANCE_DEV.DBT_MTEST.CSV_LOADER2'
             )
         )
 ),
