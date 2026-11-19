@@ -84,9 +84,11 @@ else
     
             CASE
                 WHEN MAPPING_STATUS IN (
-                    'Column Matched',
-                    'Column Position Mismatched'
+                    'Column Matched'
                 ) THEN 'load'
+
+                when MAPPING_STATUS = 'Column Position Mismatched' then 
+                'load_with_position_mismatch_warning'
     
                 WHEN MAPPING_STATUS IN (
                     'Column Not Found',

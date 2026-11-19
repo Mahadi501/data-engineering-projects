@@ -1,8 +1,8 @@
 -- create a bronze table to ingest employer data through metadata driven ingestion 
- create table if not exists insurance_dev.dbt_mtest.employer_metadata_driven_ingest 
+ create or replace table insurance_dev.dbt_mtest.employer_metadata_driven_ingest 
 (
 batch_id varchar,
-source_name varbinary,
+source_name varchar,
 EMPLOYER_ID VARCHAR,
 ABN VARCHAR,
 EMPLOYER_NAME STRING(40),
@@ -30,7 +30,7 @@ comment = 'table to store journey of an ingested file through metadata driven in
 
 
 -- stored procedure to orchestrate the metadata driven ingestion 
-create or replace procedure insurance_dev.dbt_mtest.sp_orchstrt_metadata_ingstn(p_file_name varchar,p_source varchar,p_infer_schema_fileformat varchar,p_file_format_name varchar) 
+create or replace procedure insurance_dev.dbt_mtest.sp_orchstrt_metadata_ingstn(p_file_path varchar,p_source varchar,p_infer_schema_fileformat varchar,p_file_format_name varchar) 
 returns varchar
 language sql
 as 
@@ -41,6 +41,7 @@ v_file_ingestion_status varchar;
 v_batch_id varchar;
 v_ingestion_action varchar;
 v_sql VARCHAR;
+v_column_mapping varchar;
 begin 
 
 --create a batch_id to start with the ingestion process
@@ -50,43 +51,39 @@ v_status := 'file_received';
 -- create entry into the audit table
 insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
 values
-(:v_batch_id,:p_source,:p_file_name,:v_status);
+(:v_batch_id,:p_source,:p_file_path,:v_status);
 
--- check for file validation
-call insurance_dev.dbt_mtest.file_validator(:p_file_name,:p_infer_schema_fileformat) into :v_file_ingestion_status;
+-- perform file validation checks 
+call insurance_dev.dbt_mtest.file_validator(:p_file_path,:p_infer_schema_fileformat) into :v_file_ingestion_status;
 
 if (:v_file_ingestion_status = 'FILE VALIDATION SUCCESS') then 
     v_status := 'file_validated';
     insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
     values
-    (:v_batch_id,:p_source,:p_file_name,:v_status);
+    (:v_batch_id,:p_source,:p_file_path,:v_status);
 else 
     v_status := 'file_validation_failed';
     insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
     values
-    (:v_batch_id,:p_source,:p_file_name,:v_status);
+    (:v_batch_id,:p_source,:p_file_path,:v_status);
     return 'Ingestion Failed - Check audit table for batch_id: ' || v_batch_id;
 END IF;
 
--- run schema validation 
-call insurance_dev.dbt_mtest.schema_validator
-(
-:p_file_name,
-:p_source,
-:v_batch_id
-); 
+-- perform  schema validation 
+call insurance_dev.dbt_mtest.schema_validator(:p_file_path,:p_source,:v_batch_id,:p_infer_schema_fileformat); 
+
 v_status := 'schema_validated';
 insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
 values
-(:v_batch_id,:p_source,:p_file_name,:v_status);
+(:v_batch_id,:p_source,:p_file_path,:v_status);
 
--- run schema classification
+-- perform schema classification
 call insurance_dev.dbt_mtest.schema_classifier(:v_batch_id,:p_source);
 v_status := 'schema_classified';
 
 insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
 values
-(:v_batch_id,:p_source,:p_file_name,:v_status);
+(:v_batch_id,:p_source,:p_file_path,:v_status);
 
 -- check schema validation decision 
 select action 
@@ -97,14 +94,26 @@ where batch_id = :v_batch_id and source = :p_source;
 v_status := 'loading';
 insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
 values
-(:v_batch_id,:p_source,:p_file_name,:v_status);
+(:v_batch_id,:p_source,:p_file_path,:v_status);
 
 
---implement decision 
-if (:v_ingestion_action = 'load') then 
+--if decision is load then load the file from stage into the bronze folder using dynamic sql 
+if (:v_ingestion_action in ('load','load_with_position_mismatch_warning')) then 
+
+--generate dynamic mapping for loading file from stage
+call insurance_dev.dbt_mtest.sp_generate_load_mapping(:v_batch_id,:p_source) into :v_column_mapping;
+
+v_status := 'mapping_generated';
+
+insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
+values
+(:v_batch_id,:p_source,:p_file_path,:v_status);
+
 v_sql :=
     'COPY INTO INSURANCE_DEV.DBT_MTEST.EMPLOYER_METADATA_DRIVEN_INGEST
-    (
+    ( 
+        batch_id,
+        source_name,
         employer_id,
         abn,
         employer_name,
@@ -120,35 +129,28 @@ v_sql :=
     FROM
     (
         SELECT
-            $1 AS employer_id,
-            $2 AS abn,
-            $3 AS employer_name,
-            $4 AS industry,
-            $5 AS region,
-            $6 AS premium_size,
-            $7 AS employee_count,
-            $8 AS offices_count,
-            $9 AS hazard_material_handle,
-            $10 AS effective_date,
-            $11 AS last_updated_date
-        FROM ' || p_file_name || '
+            ? as batch_id,
+            ? as source_name,
+            ' || v_column_mapping || '
+        FROM ' || p_file_path || '
     )
     force = true
     FILE_FORMAT = (FORMAT_NAME = ''' || p_file_format_name || ''')';
 
-    EXECUTE IMMEDIATE :v_sql;
+    EXECUTE IMMEDIATE :v_sql USING (v_batch_id, p_source);
     
     v_status := 'loaded';
     
     insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
     values
-    (:v_batch_id,:p_source,:p_file_name,:v_status);
-    
+    (:v_batch_id,:p_source,:p_file_path,:v_status);
+
+
 else  
-    v_status := 'Failed';
+    v_status := 'Failed - schema_change_detected';
     insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
     values
-    (:v_batch_id,:p_source,:p_file_name,:v_status);
+    (:v_batch_id,:p_source,:p_file_path,:v_status);
 
 END IF;
 return 'metadata ingestion process completed - check audit table for batch_id: ' || v_batch_id;
@@ -160,3 +162,16 @@ call insurance_dev.dbt_mtest.sp_orchstrt_metadata_ingstn('@INSURANCE_DEV.DBT_MTE
 
 
 
+delete from insurance_dev.dbt_mtest.employer_metadata_driven_ingest;
+delete from insurance_dev.dbt_mtest.schema_validation_results;
+delete from insurance_dev.dbt_mtest.schema_validation_summary;
+delete  from insurance_dev.dbt_mtest.audit_table;
+
+
+select * from insurance_dev.dbt_mtest.employer_metadata_driven_ingest;
+
+
+select * from insurance_dev.dbt_mtest.audit_table;
+select * from insurance_dev.dbt_mtest.schema_validation_summary;
+
+select * from insurance_dev.dbt_mtest.schema_validation_results;

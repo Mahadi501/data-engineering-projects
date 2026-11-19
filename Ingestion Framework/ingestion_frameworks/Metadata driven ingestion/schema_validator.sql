@@ -22,7 +22,8 @@ CREATE OR REPLACE PROCEDURE insurance_dev.dbt_mtest.schema_validator
 (
 FILE_PATH VARCHAR, -- refers to complete file_path of the source file
 source_type VARCHAR, -- refers to data entity for the incoming file such as employer, customer etc
-batch_id VARCHAR -- refers to the ingestion batch
+batch_id VARCHAR, -- refers to the ingestion batch,
+file_format varchar
 )
 returns string
 language sql
@@ -59,7 +60,7 @@ with file_header as (
                 -- '@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v4.csv',
                 location => :FILE_PATH, 
                 -- 'INSURANCE_DEV.DBT_MTEST.CSV_LOADER2'
-                FILE_FORMAT => 'INSURANCE_DEV.DBT_MTEST.CSV_LOADER2'
+                FILE_FORMAT => :file_format
             )
         )
 ),
@@ -309,9 +310,9 @@ END;
 $$;
 
 
-call insurance_dev.dbt_mtest.schema_validator('@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v3.csv','INSURANCE_DEV.DBT_MTEST.CSV_LOADER2','employer','batch1224');
+call insurance_dev.dbt_mtest.schema_validator('@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v3.csv','employer','batch1224','INSURANCE_DEV.DBT_MTEST.CSV_LOADER2');
 
-select * from insurance_dev.dbt_mtest.schema_validation_results where batch_id = 'batch1223';
+delete from insurance_dev.dbt_mtest.schema_validation_results;
 
 
 
