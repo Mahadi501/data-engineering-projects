@@ -38,6 +38,6 @@ end;
 $$;
 
 
-CALL insurance_dev.dbt_mtest.sp_generate_load_mapping('0cb5bbbe-ce04-46bf-9999-d77ac8540979','employer');
+-- CALL insurance_dev.dbt_mtest.sp_generate_load_mapping('c416d16a-d25d-4179-8c16-89bdebe46464','employer');
 
-select * from insurance_dev.dbt_mtest.audit_table;
+-- select * from insurance_dev.dbt_mtest.audit_table;

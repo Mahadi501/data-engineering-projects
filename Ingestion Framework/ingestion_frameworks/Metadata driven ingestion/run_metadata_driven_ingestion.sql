@@ -36,12 +36,17 @@ language sql
 as 
 $$
 declare
-v_status varchar;
-v_file_ingestion_status varchar;
-v_batch_id varchar;
-v_ingestion_action varchar;
-v_sql VARCHAR;
-v_column_mapping varchar;
+v_status varchar; -- variable to store interim statuses during the ingestion process
+
+v_file_ingestion_status varchar; --variable to store the result of the file validator stored procedure. 
+
+v_batch_id varchar; -- store the generated batch_id for the ingestion process everytime the sp is run
+
+v_ingestion_action varchar; -- variable to store the decision from schema validation 
+
+v_sql VARCHAR; -- variable to store the dynamic sql for loading the file from stage
+
+v_column_mapping varchar; -- variable to store the dynamic mapping to load the ingested file correctly
 begin 
 
 --create a batch_id to start with the ingestion process
@@ -77,7 +82,7 @@ insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status
 values
 (:v_batch_id,:p_source,:p_file_path,:v_status);
 
--- perform schema classification
+-- perform schema classification and get the final ingestion decision on the incoming file
 call insurance_dev.dbt_mtest.schema_classifier(:v_batch_id,:p_source);
 v_status := 'schema_classified';
 
@@ -97,19 +102,19 @@ values
 (:v_batch_id,:p_source,:p_file_path,:v_status);
 
 
---if decision is load then load the file from stage into the bronze folder using dynamic sql 
-if (:v_ingestion_action in ('load','load_with_position_mismatch_warning')) then 
+--if decision is load or load_with_position_mismatch then load the file from stage into the bronze folder using dynamic sql 
+if (:v_ingestion_action in ('load')) then 
 
---generate dynamic mapping for loading file from stage
-call insurance_dev.dbt_mtest.sp_generate_load_mapping(:v_batch_id,:p_source) into :v_column_mapping;
+    --generate dynamic mapping for loading file from stage
+    call insurance_dev.dbt_mtest.sp_generate_load_mapping(:v_batch_id,:p_source) into :v_column_mapping;
 
-v_status := 'mapping_generated';
+    v_status := 'mapping_generated';
 
-insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
-values
-(:v_batch_id,:p_source,:p_file_path,:v_status);
+    insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
+    values
+    (:v_batch_id,:p_source,:p_file_path,:v_status);
 
-v_sql :=
+    v_sql :=
     'COPY INTO INSURANCE_DEV.DBT_MTEST.EMPLOYER_METADATA_DRIVEN_INGEST
     ( 
         batch_id,
@@ -137,6 +142,7 @@ v_sql :=
     force = true
     FILE_FORMAT = (FORMAT_NAME = ''' || p_file_format_name || ''')';
 
+
     EXECUTE IMMEDIATE :v_sql USING (v_batch_id, p_source);
     
     v_status := 'loaded';
@@ -145,9 +151,124 @@ v_sql :=
     values
     (:v_batch_id,:p_source,:p_file_path,:v_status);
 
+elseif (:v_ingestion_action in ('load_with_position_mismatch_warning')) then 
 
-else  
-    v_status := 'Failed - schema_change_detected';
+    --generate dynamic mapping for loading file from stage
+    call insurance_dev.dbt_mtest.sp_generate_load_mapping(:v_batch_id,:p_source) into :v_column_mapping;
+    
+    v_status := 'mapping_generated';
+    
+    insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
+    values
+    (:v_batch_id,:p_source,:p_file_path,:v_status);
+
+
+    v_sql :=
+    'COPY INTO INSURANCE_DEV.DBT_MTEST.EMPLOYER_METADATA_DRIVEN_INGEST
+    ( 
+        batch_id,
+        source_name,
+        employer_id,
+        abn,
+        employer_name,
+        industry,
+        region,
+        premium_size,
+        employee_count,
+        offices_count,
+        hazard_material_handle,
+        effective_date,
+        last_updated_date
+    )
+    FROM
+    (
+        SELECT
+            ? as batch_id,
+            ? as source_name,
+            ' || v_column_mapping || '
+        FROM ' || p_file_path || '
+    )
+    force = true
+    FILE_FORMAT = (FORMAT_NAME = ''' || p_file_format_name || ''')';
+
+
+
+
+    EXECUTE IMMEDIATE :v_sql USING (v_batch_id, p_source);
+    
+    v_status := 'load_with_position_mismatch_warning';
+    
+    insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
+    values
+    (:v_batch_id,:p_source,:p_file_path,:v_status);
+
+elseif (:v_ingestion_action in ('load_with_warning_new_column_found')) then 
+
+    --generate dynamic mapping for loading file from stage
+    call insurance_dev.dbt_mtest.sp_generate_load_mapping(:v_batch_id,:p_source) into :v_column_mapping;
+    
+    v_status := 'mapping_generated';
+    
+    insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
+    values
+    (:v_batch_id,:p_source,:p_file_path,:v_status);
+    
+    v_sql :=
+        'COPY INTO INSURANCE_DEV.DBT_MTEST.EMPLOYER_METADATA_DRIVEN_INGEST
+        ( 
+            batch_id,
+            source_name,
+            employer_id,
+            abn,
+            employer_name,
+            industry,
+            region,
+            premium_size,
+            employee_count,
+            offices_count,
+            hazard_material_handle,
+            effective_date,
+            last_updated_date
+        )
+        FROM
+        (
+            SELECT
+                ? as batch_id,
+                ? as source_name,
+                ' || v_column_mapping || '
+            FROM ' || p_file_path || '
+        )
+        force = true
+        FILE_FORMAT = (FORMAT_NAME = ''' || p_file_format_name || ''')';
+    
+        EXECUTE IMMEDIATE :v_sql USING (v_batch_id, p_source);
+        
+        v_status := 'load_with_warning_new_column_found';
+        
+        insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
+        values
+        (:v_batch_id,:p_source,:p_file_path,:v_status);
+
+
+elseif (:v_ingestion_action in ('reject_column_missing')) then 
+    v_status := 'Failed_column_missing';
+    insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
+    values
+    (:v_batch_id,:p_source,:p_file_path,:v_status);
+
+elseif (:v_ingestion_action in ('reject_data_type_mismatch')) then 
+    v_status := 'Failed_datatype_mismatch';
+    insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
+    values
+    (:v_batch_id,:p_source,:p_file_path,:v_status);
+
+elseif (:v_ingestion_action in ('reject_column_renamed')) then 
+    v_status := 'Failed_column_rename_detected';
+    insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
+    values (:v_batch_id,:p_source,:p_file_path,:v_status);
+
+else 
+    v_status := 'Failed - Unknown reason';
     insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
     values
     (:v_batch_id,:p_source,:p_file_path,:v_status);
@@ -158,7 +279,7 @@ end;
 $$;
 
 
-call insurance_dev.dbt_mtest.sp_orchstrt_metadata_ingstn('@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v4.csv', 'employer','INSURANCE_DEV.DBT_MTEST.CSV_LOADER2','INSURANCE_DEV.DBT_MTEST.CSV_LOADER');
+call insurance_dev.dbt_mtest.sp_orchstrt_metadata_ingstn('@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v8.csv', 'employer','INSURANCE_DEV.DBT_MTEST.CSV_LOADER2','INSURANCE_DEV.DBT_MTEST.CSV_LOADER');
 
 
 
@@ -172,6 +293,17 @@ select * from insurance_dev.dbt_mtest.employer_metadata_driven_ingest;
 
 
 select * from insurance_dev.dbt_mtest.audit_table;
-select * from insurance_dev.dbt_mtest.schema_validation_summary;
+select * from insurance_dev.dbt_mtest.schema_validation_summary
+where batch_id = 'c416d16a-d25d-4179-8c16-89bdebe46464';
 
-select * from insurance_dev.dbt_mtest.schema_validation_results;
+select * from insurance_dev.dbt_mtest.schema_validation_results
+where batch_id = 'c416d16a-d25d-4179-8c16-89bdebe46464';
+
+select * from insurance_dev.dbt_mtest.audit_table
+where batch_id = '0de3f394-8f54-4e04-9505-ef91d2526463';
+
+select * from insurance_dev.dbt_mtest.employer_metadata_driven_ingest
+where batch_id = '0de3f394-8f54-4e04-9505-ef91d2526463';
+
+
+

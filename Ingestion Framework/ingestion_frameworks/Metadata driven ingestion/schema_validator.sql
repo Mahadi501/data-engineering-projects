@@ -310,9 +310,6 @@ END;
 $$;
 
 
-call insurance_dev.dbt_mtest.schema_validator('@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v3.csv','employer','batch1224','INSURANCE_DEV.DBT_MTEST.CSV_LOADER2');
+call insurance_dev.dbt_mtest.schema_validator('@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v8.csv','employer','batch1224','INSURANCE_DEV.DBT_MTEST.CSV_LOADER2');
 
-delete from insurance_dev.dbt_mtest.schema_validation_results;
-
-
-
+select * from insurance_dev.dbt_mtest.schema_validation_results;

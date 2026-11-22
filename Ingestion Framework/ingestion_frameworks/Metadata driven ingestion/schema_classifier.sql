@@ -90,13 +90,10 @@ else
                 when MAPPING_STATUS = 'Column Position Mismatched' then 
                 'load_with_position_mismatch_warning'
     
-                WHEN MAPPING_STATUS IN (
-                    'Column Not Found',
-                    'Column Type Mismatched',
-                    'Column Renamed'
-                ) THEN 'reject'
-    
-                WHEN MAPPING_STATUS = 'Column Added' THEN 'load with warning'
+                WHEN MAPPING_STATUS  = 'Column Not Found' THEN 'reject_column_missing'
+                WHEN MAPPING_STATUS = 'Column Type Mismatched' THEN 'reject_data_type_mismatch'
+                WHEN MAPPING_STATUS = 'Column Renamed' THEN 'reject_column_renamed'
+                WHEN MAPPING_STATUS = 'Column Added' THEN 'load_with_warning_new_column_found'
             END AS action
     
         FROM insurance_dev.dbt_mtest.schema_validation_results

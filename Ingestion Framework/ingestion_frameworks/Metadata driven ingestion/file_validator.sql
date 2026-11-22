@@ -75,7 +75,8 @@ END IF;
 END;
 $$;
 
-CALL insurance_dev.dbt_mtest.file_validator(
-    '@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v6.csv',
-    'INSURANCE_DEV.DBT_MTEST.CSV_LOADER2'
-);
+-- CALL insurance_dev.dbt_mtest.file_validator(
+--     '@INSURANCE_DEV.DBT_MTEST.EMPLOYER_STAGE_S3/staging/employers_v8.csv',
+--     'INSURANCE_DEV.DBT_MTEST.CSV_LOADER2'
+-- );
+
