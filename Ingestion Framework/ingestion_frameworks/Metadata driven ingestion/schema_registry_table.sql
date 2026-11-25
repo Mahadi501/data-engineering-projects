@@ -87,3 +87,6 @@ values
 -- INSURANCE_DEV.DBT_MTEST.source_to_table_mapping
 -- WHERE CURRENT_FLAG = TRUE;
 
+
+
+

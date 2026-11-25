@@ -17,7 +17,6 @@ LAST_UPDATED_DATE DATETIME
 )
 comment = 'Table to store data ingested using meadata driven ingestion';
 
-
 -- create an audit table to store the entire ingestion journey of a file
 create table if not exists insurance_dev.dbt_mtest.audit_table
 (
@@ -47,11 +46,22 @@ v_ingestion_action varchar; -- variable to store the decision from schema valida
 v_sql VARCHAR; -- variable to store the dynamic sql for loading the file from stage
 
 v_column_mapping varchar; -- variable to store the dynamic mapping to load the ingested file correctly
+
+v_downstream_table_name varchar; -- variable to store the name of the downstream table 
 begin 
 
 --create a batch_id to start with the ingestion process
 v_batch_id := uuid_string();
 v_status := 'file_received';
+
+
+-- extracting downstream table name 
+select 
+downstream_table
+into :v_downstream_table_name
+from insurance_dev.dbt_mtest.source_to_table_mapping
+where source_name = :p_source and CURRENT_FLAG = TRUE;
+
 
 -- create entry into the audit table
 insert into insurance_dev.dbt_mtest.audit_table(batch_id,source,file_name,status)
@@ -115,7 +125,7 @@ if (:v_ingestion_action in ('load')) then
     (:v_batch_id,:p_source,:p_file_path,:v_status);
 
     v_sql :=
-    'COPY INTO INSURANCE_DEV.DBT_MTEST.EMPLOYER_METADATA_DRIVEN_INGEST
+    'COPY INTO ' || v_downstream_table_name || '
     ( 
         batch_id,
         source_name,
@@ -164,7 +174,7 @@ elseif (:v_ingestion_action in ('load_with_position_mismatch_warning')) then
 
 
     v_sql :=
-    'COPY INTO INSURANCE_DEV.DBT_MTEST.EMPLOYER_METADATA_DRIVEN_INGEST
+    'COPY INTO ' || v_downstream_table_name || '
     ( 
         batch_id,
         source_name,
@@ -202,7 +212,7 @@ elseif (:v_ingestion_action in ('load_with_position_mismatch_warning')) then
     values
     (:v_batch_id,:p_source,:p_file_path,:v_status);
 
-elseif (:v_ingestion_action in ('load_with_warning_new_column_found')) then 
+elseif (:v_ingestion_action in ('load_with_new_column_added_warning')) then 
 
     --generate dynamic mapping for loading file from stage
     call insurance_dev.dbt_mtest.sp_generate_load_mapping(:v_batch_id,:p_source) into :v_column_mapping;
@@ -214,7 +224,7 @@ elseif (:v_ingestion_action in ('load_with_warning_new_column_found')) then
     (:v_batch_id,:p_source,:p_file_path,:v_status);
     
     v_sql :=
-        'COPY INTO INSURANCE_DEV.DBT_MTEST.EMPLOYER_METADATA_DRIVEN_INGEST
+        'COPY INTO ' || v_downstream_table_name || '
         ( 
             batch_id,
             source_name,
@@ -294,16 +304,16 @@ select * from insurance_dev.dbt_mtest.employer_metadata_driven_ingest;
 
 select * from insurance_dev.dbt_mtest.audit_table;
 select * from insurance_dev.dbt_mtest.schema_validation_summary
-where batch_id = 'c416d16a-d25d-4179-8c16-89bdebe46464';
+where batch_id = 'fb573495-2bc5-49ca-83e3-c31179456429';
 
 select * from insurance_dev.dbt_mtest.schema_validation_results
-where batch_id = 'c416d16a-d25d-4179-8c16-89bdebe46464';
+where batch_id = 'fb573495-2bc5-49ca-83e3-c31179456429';
 
 select * from insurance_dev.dbt_mtest.audit_table
-where batch_id = '0de3f394-8f54-4e04-9505-ef91d2526463';
+where batch_id = 'fb573495-2bc5-49ca-83e3-c31179456429';
 
 select * from insurance_dev.dbt_mtest.employer_metadata_driven_ingest
-where batch_id = '0de3f394-8f54-4e04-9505-ef91d2526463';
+where batch_id = '7f541efe-ad98-4b4e-9d9c-1c23dbe91c45';
 
 
 

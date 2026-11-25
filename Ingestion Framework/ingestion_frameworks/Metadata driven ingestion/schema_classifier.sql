@@ -117,5 +117,7 @@ END IF;
 end;
 $$;
 
-call insurance_dev.dbt_mtest.schema_classifier('batch1223','employer');
+call insurance_dev.dbt_mtest.schema_classifier('fb573495-2bc5-49ca-83e3-c31179456429','employer');
 select * from insurance_dev.dbt_mtest.schema_validation_summary;
+
+
