@@ -13,6 +13,16 @@ CURRENT_FLAG BOOLEAN
 COMMENT = 'Table stores expected schema for all versions of incoming source files from S3 Stage';
 
 
+-- create table to store the mapping between the source and downstream table
+create table if not exists insurance_dev.dbt_mtest.source_to_table_mapping
+(
+source_name varchar,
+version varchar,
+downstream_table varchar,
+CURRENT_FLAG boolean
+)
+comment = 'Table stores the downstream table for each source';
+
 -- inserting record for v1
 INSERT INTO INSURANCE_DEV.DBT_MTEST.SCHEMA_REGISTRY_TABLE
 (SOURCE_NAME,SCHEMA_VERSION,COLUMN_NAME,DATA_TYPE,COLUMN_POSITION,EFFECTIVE_FROM_DATE,EFFECTIVE_TO_DATE,CURRENT_FLAG)
@@ -62,9 +72,18 @@ VALUES
 ('employer', 'version4','effective_date','date',9,'01/01/2024',NULL,TRUE),
 ('employer', 'version4','last_updated_date','date',10,'01/01/2024',NULL,TRUE);
 
-SELECT * FROM 
-INSURANCE_DEV.DBT_MTEST.SCHEMA_REGISTRY_TABLE
-WHERE CURRENT_FLAG = TRUE;
 
-delete from INSURANCE_DEV.DBT_MTEST.SCHEMA_REGISTRY_TABLE;
+-- inserting rocord containing source mapping between source and downstream table
+insert into insurance_dev.dbt_mtest.source_to_table_mapping
+(source_name,version,downstream_table,CURRENT_FLAG)
+values 
+('employer','version1',null,FALSE),
+('employer','version2',null,FALSE),
+('employer','version3',null,FALSE),
+('employer','version4','insurance_dev.dbt_mtest.employer_metadata_driven_ingest',TRUE);
+
+
+-- SELECT * FROM 
+-- INSURANCE_DEV.DBT_MTEST.source_to_table_mapping
+-- WHERE CURRENT_FLAG = TRUE;
 
