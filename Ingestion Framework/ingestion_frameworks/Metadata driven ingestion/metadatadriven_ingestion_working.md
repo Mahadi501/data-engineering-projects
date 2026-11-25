@@ -119,3 +119,160 @@ This string is then returned through a varchar variable and used within the sp_o
 
 
 ## Important tables in the background
+### 1) insurance_dev.dbt_mtest.schema_validation_results 
+
+**Description:** 
+
+This table stores the comparison results at a column level between the incoming file schema header and active schema inside the schema registry table. The comparison is done both ways from active schema to incoming file header and file header to active schema. This allows in understanding both missing column missings in the incoming file  and also any additional columns coming inside the file. 
+For understanding if a column mismatched column is a potnetial renamed column, the code uses: JAROWINKLER_SIMILARITY() funcation to understand similarity between two columns. For example, JAROWINKLER_SIMILARITY() will give a very high scrore when run on employer_name and employer_nm and a very low score on employer_name and branch_name. The JAROWINKLER_SIMILARITY comes with a risk that a high score does not necassirily mean that the column will always be a rename. For example, address_1 and address_2 are not rename column but two separate columns. Therefore the metadata frameworks flags such renames for further review rather than automatically fixing rename and loading the file incorrectly. 
+Two important columns in this table are: 
+- mapping_status with values: 'Column Matched','Column Type Mismatched','Column Renamed','Column Position Mismatched','Column Added'
+- column_mapping_status: 'Failed' and 'Passed'
+
+
+### 2) insurance_dev.dbt_mtest.schema_validation_summary
+
+
+**Description:** 
+
+This table stores the compiled file level comparison results into the table. This table provides the final action on what needs to be done with the incoming file. This action is stored in the following column: 
+- action: 'load','load_with_position_mismatch_warning','reject_column_missing','reject_data_type_mismatch','reject_column_renamed','load_with_warning_new_column_found'
+
+### 3) insurance_dev.dbt_mtest.SCHEMA_REGISTRY_TABLE
+
+
+**Description:** 
+
+This table stores the all the schema versions of all the sources. It contains the EFFECTIVE_FROM_DATE,EFFECTIVE_TO_DATE and CURRENT_FLAG column which basically helps identify which is the current schema format for the source. At any given point only one schema format will have the CURRENT_FLAG = 'Y'. 
+However, keeping all the format inside the table helps answers the business question, that lets say a employer source file was ingested in 2017-09-01, was the file format valid for the valid? Were there any differences between the schema format and incoming file
+
+
+### 4) insurance_dev.dbt_mtest.audit_table
+
+
+**Description:** 
+
+This table stores the entire lifecycle of the incoming file from file_received -> loaded. If the file ingestion fails due to any ingestion this audit table explains at which step error has occured. This helps with debugging. 
+
+**Successful Load looks like:**
+
+file_received
+
+↓
+
+file_validated
+
+↓
+
+schema_validated
+
+↓
+
+loading or load_with_position_mismatch_warning or load_with_warning_new_column_found
+
+↓
+
+
+mapping_generated
+
+↓
+
+loaded
+
+↓
+
+SP returns:  'metadata ingestion process completed - check audit table for batch_id: ' || v_batch_id;
+
+
+**Unsuccessful Load with file validation failed looks like:**
+
+file_received
+
+↓
+
+file_validation_failed
+
+↓
+
+SP returns:  'Ingestion Failed - Check audit table for batch_id: ' || v_batch_id;
+
+**Unsuccessful Load because of column missing in incoming file**
+
+file_received
+
+↓
+
+file_validated
+
+↓
+
+schema_validated
+
+↓
+
+reject_column_missing
+
+↓
+
+SP returns:  'metadata ingestion process completed - check audit table for batch_id: ' || v_batch_id;
+
+
+**Unsuccessful Load because of column data type mismatch in incoming file**
+
+file_received
+
+↓
+
+file_validated
+
+↓
+
+schema_validated
+
+↓
+
+reject_data_type_mismatch
+↓
+
+SP returns:  'metadata ingestion process completed - check audit table for batch_id: ' || v_batch_id;
+
+
+**Unsuccessful Load because of column potential column rename in incoming file**
+
+file_received
+
+↓
+
+file_validated
+
+↓
+
+schema_validated
+
+↓
+
+reject_column_renamed
+
+↓
+
+SP returns:  'metadata ingestion process completed - check audit table for batch_id: ' || v_batch_id;
+
+
+**Unsuccessful Load because of unknown issues during ingestion process**
+file_received
+
+↓
+
+file_validated
+
+↓
+
+schema_validated
+
+↓
+
+Failed - Unknown reason
+
+↓
+
+SP returns:  'metadata ingestion process completed - check audit table for batch_id: ' || v_batch_id;
