@@ -1,3 +1,15 @@
+-- table to store information on what file have been loaded
+create table if not exists insurance_dev.dbt_mtest.ingested_file_registry
+(
+file_path varchar,
+source varchar,
+downstream_table varchar,
+load_date datetime,
+status varchar
+)
+comment = 'table to store information on the list of files loaded into the downstream table';
+
+
 -- STORE PROCEDURE to validate the file before checking for schema validation 
 CREATE OR REPLACE PROCEDURE insurance_dev.dbt_mtest.file_validator(
     file_path VARCHAR,
